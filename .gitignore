@@ -1,0 +1,7 @@
+# Sistem çöp dosyaları
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
+
+# Jupyter notebook geçmişi
+*.checkpoint.ipynb
