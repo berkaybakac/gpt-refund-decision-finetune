@@ -1,0 +1,24 @@
+{
+    "editor.wordWrap": "on",
+    "editor.fontSize": 12,
+    // Python Yorumlayıcısı: lipyum_project Conda ortamını kullanmasını sağlar.
+    "python.defaultInterpreterPath": "/Users/berkaybakac/miniconda3/envs/lipyum_project/bin/python",
+    // Otomatik Kod Formatlama: Dosya kaydedildiğinde Python kodunuzu Black ile otomatik formatlar.
+    "editor.formatOnSave": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter" // Python dosyaları için varsayılan formatlayıcı olarak Black'i ayarlar.
+    },
+    "python.formatting.provider": "black", // Python uzantısına da Black'i kullanmasını söyler.
+    // Jupyter Notebook Ayarları: Notebook'ların lipyum_project kernel'ı ile sorunsuz çalışmasını sağlar.
+    "jupyter.askForKernel": false, // Yeni notebook açıldığında kernel sormaz, varsayılanı kullanır.
+    "jupyter.defaultKernel": "python3", // Varsayılan kernel olarak Python 3'ü belirler (genellikle Conda ortamınızdaki).
+    "jupyter.jupyterServerType": "local", // Yerel Jupyter sunucusunu kullanır.
+    // GitLens Ayarları (İsteğe Bağlı): Daha temiz bir görünüm için bazı görsel elementleri kapatır.
+    // Eğer bu bilgileri görmek isterseniz, bu satırları silebilir veya false yerine true yapabilirsiniz.
+    "gitlens.currentLine.enabled": false, // Mevcut satırdaki Git yazar bilgisini gizler.
+    "gitlens.codeLens.enabled": false, // Fonksiyon/sınıf üstündeki Git bilgisini gizler.
+    // Error Lens Ayarları (İsteğe Bağlı): Hata/uyarı görünümünü kişiselleştirir.
+    "errorLens.enabled": true, // Error Lens'i etkinleştirir.
+    "errorLens.delay": 200 // Hata/uyarı gösteriminde küçük bir gecikme ekler (ms).
+    // "errorLens.errorMessageBackground": "rgba(255,0,0,0.1)" // Hata mesajının arka plan rengi (örnek, kırmızımsı)
+}
