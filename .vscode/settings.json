@@ -19,6 +19,7 @@
     "gitlens.codeLens.enabled": false, // Fonksiyon/sınıf üstündeki Git bilgisini gizler.
     // Error Lens Ayarları (İsteğe Bağlı): Hata/uyarı görünümünü kişiselleştirir.
     "errorLens.enabled": true, // Error Lens'i etkinleştirir.
-    "errorLens.delay": 200 // Hata/uyarı gösteriminde küçük bir gecikme ekler (ms).
+    "errorLens.delay": 200, // Hata/uyarı gösteriminde küçük bir gecikme ekler (ms).
     // "errorLens.errorMessageBackground": "rgba(255,0,0,0.1)" // Hata mesajının arka plan rengi (örnek, kırmızımsı)
+    "python.envFile": "${workspaceFolder}/.env",
 }

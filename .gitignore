@@ -5,3 +5,5 @@ __pycache__/
 
 # Jupyter notebook geçmişi
 *.checkpoint.ipynb
+
+.env
