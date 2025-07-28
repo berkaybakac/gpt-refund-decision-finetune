@@ -1,127 +1,118 @@
-# OpenAI Fine-Tuning Project: Refund Decision Automation
+# OpenAI Fine-Tuning: Lipyum Auto Refund Decision
 
-This repository contains a complete pipeline for fine-tuning an OpenAI GPT-3.5 Turbo model to automate refund decisions based on structured call center data. The objective is to emulate the internal personnel's decision-making process — whether to **Accept** or **Reject** refund requests submitted by service providers.
-
----
-
-## Directory Structure
-
-```
-├── 00_settings_check.ipynb         # API key, library checks, data load
-├── 01_data_cleaning.ipynb          # Data cleaning, datetime parsing, label filtering
-├── 02_feature_engineering.ipynb    # Time elapsed, transcript analysis, prompt creation
-├── 03_filter_and_prompt.ipynb      # Final JSONL formatting for fine-tuning
-├── 04_fine_tune_start.ipynb        # Fine-tuning initialization
-├── 05_follow_job.ipynb             # Track fine-tuning job progress
-├── 06_model_test.ipynb             # Run single example through the model
-├── 07_eval_set_analysis.ipynb      # Evaluate the model with a test set
-├── 08_eval_metrics.ipynb           # Compute precision, recall, F1-score
-├── 09_error_analysis.ipynb         # Display misclassified examples
-├── 10_export_eval_csv.ipynb        # Export evaluation results to CSV
-└── fine_tuning_summary.md          # Project summary (delivery document)
-```
+This project automates the decision process for refund requests in a service platform where field personnel submit cancellation claims. The model learns to decide whether to accept or reject each request based on structured inputs from historical decisions.
 
 ---
 
-## Process Summary
+## Objective
 
-### Data Preparation
+To replace the manual final decision made by internal staff with an AI model that can:
 
-- Normalized Unicode and loaded as `.json`
-- Filled NaNs, ensured consistent text types
-- Calculated time elapsed (in minutes) between job assignment and refund request
-- Extracted number of calls based on `||` separator in transcripts
-- Filtered to include only `Personel Kabul Etti` and `Personel Redetti` labels
+- Review refund request reason  
+- Analyze provider and partner call transcripts  
+- Consider time elapsed, call attempts, customer/partner/system notes  
+- Decide if the provider's reason is valid and non-abusive  
+- Return a decision (`Accepted by Personnel` or `Rejected by Personnel`) along with a short explanation in Turkish
 
-### Feature Engineering
+---
 
-- Added `Time_Elapsed_Minutes` as a new numeric feature
-- Computed `HizmetVerenAramaSayisi` and `PartnerAramaSayisi` based on call transcript separators
-- Constructed structured prompt with:
-  - Reason for Refund Request
-  - Call Transcripts (Provider and Partner)
-  - Call Counts
-  - Elapsed Time (Minutes)
-- Generated supervised training examples in `prompt → completion` format
+## Model Used
 
-### Prompt Format (Training Data)
+- Base model: [`gpt-4o-mini-2024-07-18`](https://platform.openai.com/docs/models/gpt-4o-mini)
+- Method: Supervised Fine-Tuning (Chat format)
+- Platform: OpenAI API (fine-tuning v2)
+- File type: JSONL (`messages`: system + user + assistant)
 
-Each prompt uses a structured message format for consistent reasoning:
+---
 
-```text
-Reason for Refund Request: …
-Service Provider Call Transcripts: …
-Service Provider Call Count: …
-Partner Call Transcripts: …
-Partner Call Count: …
-Time Elapsed Between Job Submission and Refund Request: … minutes.
-```
+## Data Preparation Pipeline
 
-The model responds with a JSON object like:
+The entire process is implemented in 8 sequential Jupyter Notebook cells:
+
+| Step                   | Description                                                          |
+| ---------------------- | -------------------------------------------------------------------- |
+| 01_settings_check      | Environment setup, data load, model & key check                      |
+| 02_data_cleaning       | Cleans timestamps, fills missing text, computes time differences     |
+| 03_feature_call_counts | Counts provider and partner calls from transcripts                   |
+| 04_filter_and_prompt   | Formats training data in Chat JSONL format                           |
+| 05_cost_estimation     | Computes total tokens and estimated cost before training             |
+| 06_fine_tune_start     | Uploads file and starts fine-tuning                                  |
+| 07_follow_job          | Tracks training status and saves model name when ready               |
+| 08_model_test          | Sends structured test input to the trained model and prints response |
+
+> Cells `09–12` were excluded: They sampled limited evaluation sets (e.g. 100 examples) which added extra cost. Since the full dataset is already used for training and can be tested directly, these steps were removed for efficiency.
+
+---
+
+## Training Format (OpenAI Chat JSONL)
+
+Each training example contains:
 
 ```json
-{"decision": "Accepted by Personnel", "reason": "müşteri yanlış adres vermiş"}
+{
+  "messages": [
+    { "role": "system", "content": "Defines AI role and refund policy" },
+    { "role": "user", "content": "Structured input fields (reasons, transcripts, counts, time, etc.)" },
+    { "role": "assistant", "content": "{\"decision\": \"Accepted by Personnel\", \"reason\": \"Müşteri vazgeçtiği belirtildi.\"}" }
+  ]
+}
 ```
 
 ---
 
-## Fine-Tuning & Testing
+## Cost Considerations
 
-- Uploaded `fine_tuning_data.jsonl` to OpenAI via SDK
-- Fine-tuned using `gpt-3.5-turbo-1106`
-- Retrieved final model name after job completion
-- Queried the model with sample and real data
-
----
-
-## Evaluation
-
-### Manual Test
-
-- Ran a single hard-coded test to validate behavior
-
-### Eval Set
-
-- Selected 10 random examples from the dataset
-- Compared expected vs predicted labels
-- Computed accuracy score
-- Printed failed cases with full JSON response
-
-### Metrics
-
-- Computed `accuracy`, `precision`, `recall`, `f1-score` using `scikit-learn`
-- Analysis done only if prediction structure was valid JSON
-
-### Error Analysis
-
-- Displayed detailed reasoning of misclassified examples
-- Helpful for understanding model weaknesses
-
-### Export
-
-- Saved evaluation results to `eval_output.csv` for reporting
+Token count and cost are calculated in advance using `tiktoken`.  
+While cost estimates are large-scale accurate, OpenAI's backend may discard malformed rows or tokenize differently.  
+Thus, cost projections reflect a **high-confidence approximation**, not a guaranteed total.  
+True cost will be shown in OpenAI's usage dashboard after training.
 
 ---
 
-## Deliverables
+## Compatibility with Business Logic
 
-- `fine_tuning_data.jsonl` – Final training file
-- `eval_output.csv` – Evaluation results (expected vs predicted vs response)
-- Jupyter notebooks `00` → `10` – Complete project pipeline
-- `fine_tuning_summary.md` – This report as standalone file
+This project strictly follows the business flow described in `Lipyum Oto Karar.pdf`, including:
+
+- Terminology: Partner, Provider, Customer, Internal Personnel  
+- Workflow: Job assignment → Provider call → Refund request → Partner check → Final decision  
+- Columns used: Refund reason, call data, rejection notes, timestamps, etc.  
+- Filtering: Only "Personel Kabul Etti" and "Personel Redetti" are used
 
 ---
 
-## Requirements
+## Outputs
 
-- Python ≥ 3.8
-- `openai`, `pandas`, `scikit-learn`
-- OpenAI API key (exported as `OPENAI_API_KEY`)
+Once trained, the model receives structured prompt input and returns:
+
+```json
+{
+  "decision": "Accepted by Personnel",
+  "reason": "Müşteri adres bilgisinin yanlış olduğunu belirtti."
+}
+```
+
+---
+
+## Resources
+
+- [OpenAI Fine-Tuning Docs](https://platform.openai.com/docs/guides/fine-tuning)  
+- [OpenAI gpt-4o-mini Model Reference](https://platform.openai.com/docs/models/gpt-4o-mini)  
+- Project reference document: `Lipyum Oto Karar.pdf`
 
 ---
 
 ## Notes
 
-- Project designed to reproduce personnel-level refund decision logic
-- Prompt includes only visible features – model cannot hallucinate
-- Evaluation can be extended to 100+ rows for more reliable metrics
+- No confidential or personal information is included  
+- Dataset is cleaned and normalized for model compatibility  
+- The model is expected to generalize well on real-world refund decisions  
+- Further tests will be run after deployment with the trained model
+
+---
+
+## Summary
+
+The project has successfully implemented a full fine-tuning pipeline using real support data.  
+The trained model can evaluate refund requests and provide decisions with brief Turkish justifications, aligning with internal review criteria.
+
+> The model will be fine-tuned and tested using the company's OpenAI account.
