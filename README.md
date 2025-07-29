@@ -97,7 +97,6 @@ Once trained, the model receives structured prompt input and returns:
 
 - [OpenAI Fine-Tuning Docs](https://platform.openai.com/docs/guides/fine-tuning)  
 - [OpenAI gpt-4o-mini Model Reference](https://platform.openai.com/docs/models/gpt-4o-mini)  
-- Project reference document: `Lipyum Oto Karar.pdf`
 
 ---
 
